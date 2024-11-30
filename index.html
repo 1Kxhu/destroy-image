@@ -1,0 +1,58 @@
+<!doctypehtml><html lang=en><meta charset=UTF-8><meta content="width=device-width,initial-scale=1"name=viewport><title>Resize and Compress Image</title><style>body{font-family:Arial,sans-serif;margin:20px;text-align:center}img{max-width:100%;height:auto;margin-top:20px}input[type=file]{margin-top:20px}canvas{display:none}#pasteArea{border:2px dashed #ccc;padding:20px;margin-top:20px;background-color:#f9f9f9}</style><h1>Upload or Paste an Image</h1><input accept=image/* id=imageUpload type=file><div id=pasteArea>Paste an image here (Ctrl+V)</div><div id=originalImageContainer style=display:none><h2>Original Image:</h2><img alt="Original Image Preview"id=originalImage></div><div id=compressedImageContainer style=display:none><h2>Compressed & Resized Image (400x400, 20% Quality):</h2><img alt="Compressed Image Preview"id=compressedImage></div><canvas id=imageCanvas></canvas><script>const imageUpload = document.getElementById('imageUpload');
+    const pasteArea = document.getElementById('pasteArea');
+    const originalImageContainer = document.getElementById('originalImageContainer');
+    const compressedImageContainer = document.getElementById('compressedImageContainer');
+    const originalImage = document.getElementById('originalImage');
+    const compressedImage = document.getElementById('compressedImage');
+    const imageCanvas = document.getElementById('imageCanvas');
+
+    function processImage(dataUrl) {
+        originalImageContainer.style.display = 'block';
+
+        const img = new Image();
+        img.onload = function() {
+            const targetWidth = 400;
+            const targetHeight = 400;
+            imageCanvas.width = targetWidth;
+            imageCanvas.height = targetHeight;
+
+            const ctx = imageCanvas.getContext('2d');
+
+            ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
+
+            const normalData = imageCanvas.toDataURL();
+
+            const compressedDataUrl = imageCanvas.toDataURL('image/jpeg', 0.12);
+
+            compressedImage.src = compressedDataUrl;
+            compressedImageContainer.style.display = 'block';
+            originalImage.src = normalData;
+        };
+        img.src = dataUrl;
+    }
+
+    imageUpload.addEventListener('change', function(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                processImage(e.target.result);
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    document.addEventListener('paste', function(event) {
+        const items = event.clipboardData.items;
+        for (const item of items) {
+            if (item.type.startsWith('image/')) {
+                const file = item.getAsFile();
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    processImage(e.target.result);
+                };
+                reader.readAsDataURL(file);
+                break;
+            }
+        }
+    });</script>
