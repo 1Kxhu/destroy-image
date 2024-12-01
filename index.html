@@ -1,12 +1,14 @@
-<!doctypehtml><html lang=en><meta charset=UTF-8><meta content="width=device-width,initial-scale=1"name=viewport><title>Resize and Compress Image</title><style>body{font-family:Arial,sans-serif;margin:20px;text-align:center}img{max-width:100%;height:auto;margin-top:20px}input[type=file]{margin-top:20px}canvas{display:none}#pasteArea{border:2px dashed #ccc;padding:20px;margin-top:20px;background-color:#f9f9f9}</style><h1>Upload or Paste an Image</h1><input accept=image/* id=imageUpload type=file><div id=pasteArea>Paste an image here (Ctrl+V)</div><div id=originalImageContainer style=display:none><h2>Original Image:</h2><img alt="Original Image Preview"id=originalImage></div><div id=compressedImageContainer style=display:none><h2>Compressed & Resized Image (400x400, 20% Quality):</h2><img alt="Compressed Image Preview"id=compressedImage></div><canvas id=imageCanvas></canvas><script>const imageUpload = document.getElementById('imageUpload');
+<!doctypehtml><html lang=en><meta charset=UTF-8><meta content="width=device-width,initial-scale=1"name=viewport><title>Resize and Compress Image</title><style>body{font-family:Arial,sans-serif;margin:20px;text-align:center}img{max-width:100%;height:auto;margin-top:20px}input[type=file],input[type=range]{margin-top:20px}canvas{display:none}#pasteArea{border:2px dashed #ccc;padding:20px;margin-top:20px;background-color:#f9f9f9}</style><h1>Upload or Paste an Image</h1><input id=imageUpload type=file accept=image/*><div id=pasteArea>Paste an image here (Ctrl+V)</div><label for=qualitySlider>JPEG Quality: <span id=qualityValue>20%</span></label> <input id=qualitySlider type=range max=100 min=1 value=20><div id=originalImageContainer style=display:none><h2>Original Image:</h2><img alt="Original Image Preview"id=originalImage></div><div id=compressedImageContainer style=display:none><h2>Compressed & Resized Image:</h2><img alt="Compressed Image Preview"id=compressedImage></div><canvas id=imageCanvas></canvas><script>const imageUpload = document.getElementById('imageUpload');
     const pasteArea = document.getElementById('pasteArea');
     const originalImageContainer = document.getElementById('originalImageContainer');
     const compressedImageContainer = document.getElementById('compressedImageContainer');
     const originalImage = document.getElementById('originalImage');
     const compressedImage = document.getElementById('compressedImage');
     const imageCanvas = document.getElementById('imageCanvas');
+    const qualitySlider = document.getElementById('qualitySlider');
+    const qualityValue = document.getElementById('qualityValue');
 
-    function processImage(dataUrl) {
+    function processImage(dataUrl, quality = 0.2) {
         originalImageContainer.style.display = 'block';
 
         const img = new Image();
@@ -17,12 +19,11 @@
             imageCanvas.height = targetHeight;
 
             const ctx = imageCanvas.getContext('2d');
-
             ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
 
             const normalData = imageCanvas.toDataURL();
 
-            const compressedDataUrl = imageCanvas.toDataURL('image/jpeg', 0.12);
+            const compressedDataUrl = imageCanvas.toDataURL('image/jpeg', quality);
 
             compressedImage.src = compressedDataUrl;
             compressedImageContainer.style.display = 'block';
@@ -36,7 +37,7 @@
         if (file) {
             const reader = new FileReader();
             reader.onload = function(e) {
-                processImage(e.target.result);
+                processImage(e.target.result, qualitySlider.value / 100);
             };
             reader.readAsDataURL(file);
         }
@@ -49,10 +50,17 @@
                 const file = item.getAsFile();
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    processImage(e.target.result);
+                    processImage(e.target.result, qualitySlider.value / 100);
                 };
                 reader.readAsDataURL(file);
                 break;
             }
+        }
+    });
+
+    qualitySlider.addEventListener('input', function() {
+        qualityValue.textContent = `${qualitySlider.value}%`;
+        if (originalImage.src) {
+            processImage(originalImage.src, qualitySlider.value / 100);
         }
     });</script>
